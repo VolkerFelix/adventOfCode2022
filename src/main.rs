@@ -1,5 +1,6 @@
 use std::fs;
 
+#[derive(PartialEq, Eq, Ord, PartialOrd)]
 struct Elf {
     m_id: u32,
     m_foot_items: Vec<u32>,
@@ -9,7 +10,7 @@ struct Elf {
 fn main() {
     let input = fs::read_to_string("caloriesInput.txt").unwrap();
 
-    let mut elfs: Vec<Elf> = Vec::new();
+    let mut elfs = Vec::new();
     let mut index = 0;
     let mut food_items:Vec<u32> = Vec::new();
     let mut calories: u32 = 0;
@@ -20,7 +21,7 @@ fn main() {
     let mut number:String = "".to_string();
 
     for element in input.chars() {
-
+        // Warning: This is OS dependent
         if element.is_whitespace() {
             found_whitespaces = found_whitespaces + 1;
 
@@ -31,12 +32,8 @@ fn main() {
                     calories = calories + number.parse::<u32>().unwrap();
                     number.clear();
                 },
-                // Skip this step
-                2|3 => {
-                    continue;
-                },
                 // Create new elf
-                4 => {
+                2 => {
                     index = index + 1;
                     let elf = Elf {
                         m_id: index,
@@ -69,4 +66,20 @@ fn main() {
     }
 
     print!("Max calories: {}", max_cals);
+
+    // Find top three carrying elfs
+    elfs.sort_by(|a, b| b.m_calories.cmp(&a.m_calories));
+    // Top three calories in total
+    let mut sum = 0;
+    let mut i = 0;
+    for elements in elfs {
+        sum = sum + elements.m_calories;
+        i = i + 1;
+
+        if i == 3 {
+            break;
+        }
+    }
+
+    print!("Sum top 3: {}", sum);
 }
