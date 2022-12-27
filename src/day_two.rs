@@ -9,8 +9,9 @@ enum ERPS {
     Scissors
 }
 
-#[derive(Hash, Eq, PartialEq)]
+#[derive(Hash, Eq, PartialEq, Default)]
 enum EResults {
+    #[default]
     Win,
     Loss,
     Draw
@@ -26,6 +27,11 @@ struct Me {
     m_hand: ERPS,
 }
 
+#[derive(Default)]
+struct DesiredOutcome {
+    m_des_outcome: EResults,
+}
+
 struct Round {
     m_id: u32,
     m_oponent: Oponent,
@@ -35,16 +41,16 @@ struct Round {
 
 pub fn dayTwo() {
 
-    let round_result: HashMap<(ERPS, ERPS), EResults> = HashMap::from([
-        ((ERPS::Rock, ERPS::Rock), EResults::Draw),
-        ((ERPS::Paper, ERPS::Paper), EResults::Draw),
-        ((ERPS::Scissors, ERPS::Scissors), EResults::Draw),
-        ((ERPS::Rock, ERPS::Paper), EResults::Win),
-        ((ERPS::Rock, ERPS::Scissors), EResults::Loss),
-        ((ERPS::Paper, ERPS::Rock), EResults::Loss),
-        ((ERPS::Paper, ERPS::Scissors), EResults::Win),
-        ((ERPS::Scissors, ERPS::Rock), EResults::Win),
-        ((ERPS::Scissors, ERPS::Paper), EResults::Loss),
+    let round_result: HashMap<(ERPS, EResults), ERPS> = HashMap::from([
+        ((ERPS::Rock, EResults::Draw), ERPS::Rock),
+        ((ERPS::Paper, EResults::Draw), ERPS::Paper),
+        ((ERPS::Scissors, EResults::Draw), ERPS::Scissors),
+        ((ERPS::Rock, EResults::Loss), ERPS::Scissors),
+        ((ERPS::Paper, EResults::Loss), ERPS::Rock),
+        ((ERPS::Scissors, EResults::Loss), ERPS::Paper),
+        ((ERPS::Paper, EResults::Scissors), ERPS::Win),
+        ((ERPS::Scissors, EResults::Rock), ERPS::Win),
+        ((ERPS::Scissors, EResults::Paper), ERPS::Loss),
     ]);
 
     let round_score: HashMap<EResults, u32> = HashMap::from([
@@ -68,6 +74,8 @@ pub fn dayTwo() {
     let mut round_id = 0;
     let mut total_score = 0;
     let mut found_white_spaces = 0;
+
+    let mut des_outcome = DesiredOutcome::default();
 
     for element in input.chars() {
         // Warning: This is OS dependent
@@ -119,13 +127,13 @@ pub fn dayTwo() {
                     new_oponent.m_hand = ERPS::Scissors;
                 },
                 'X' => {
-                    new_me.m_hand = ERPS::Rock;
+                    des_outcome.m_des_outcome = EResults::Loss;
                 },
                 'Y' => {
-                    new_me.m_hand = ERPS::Paper;
+                    des_outcome.m_des_outcome = EResults::Draw;
                 },
                 'Z' => {
-                    new_me.m_hand = ERPS::Scissors;
+                    des_outcome.m_des_outcome = EResults::Win;
                 },
                 _ => {
                     panic!("Should not happen!");
