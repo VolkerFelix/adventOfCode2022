@@ -9,7 +9,7 @@ enum ERPS {
     Scissors
 }
 
-#[derive(Hash, Eq, PartialEq, Default)]
+#[derive(Hash, Eq, PartialEq, Default, Clone, Copy)]
 enum EResults {
     #[default]
     Win,
@@ -27,7 +27,7 @@ struct Me {
     m_hand: ERPS,
 }
 
-#[derive(Default)]
+#[derive(Default, Copy, Clone)]
 struct DesiredOutcome {
     m_des_outcome: EResults,
 }
@@ -48,9 +48,9 @@ pub fn dayTwo() {
         ((ERPS::Rock, EResults::Loss), ERPS::Scissors),
         ((ERPS::Paper, EResults::Loss), ERPS::Rock),
         ((ERPS::Scissors, EResults::Loss), ERPS::Paper),
-        ((ERPS::Paper, EResults::Scissors), ERPS::Win),
-        ((ERPS::Scissors, EResults::Rock), ERPS::Win),
-        ((ERPS::Scissors, EResults::Paper), ERPS::Loss),
+        ((ERPS::Rock, EResults::Win), ERPS::Paper),
+        ((ERPS::Paper, EResults::Win), ERPS::Scissors),
+        ((ERPS::Scissors, EResults::Win), ERPS::Rock),
     ]);
 
     let round_score: HashMap<EResults, u32> = HashMap::from([
@@ -88,23 +88,15 @@ pub fn dayTwo() {
                 },
                 // New round
                 2 => {
+                    // Check what's the supposed outcome
+                    round_score_value = *round_score.get(&des_outcome.m_des_outcome).unwrap();
+                    // My hand needed for the outcome
+                    let my_hand = round_result.get(&(new_oponent.m_hand, des_outcome.m_des_outcome)).unwrap();
                     // Evaluate my hand
-                    round_score_value = *hand_score.get(&new_me.m_hand).unwrap();
-                    // Evaluate round
-                    let new_round_result = round_result.get(&(new_oponent.m_hand, new_me.m_hand)).unwrap();
-                    round_score_value = round_score_value + *round_score.get(new_round_result).unwrap();
-
-                    let new_round = Round {
-                        m_id: round_id,
-                        m_oponent: new_oponent,
-                        m_me: new_me,
-                        m_score: round_score_value
-                    };
+                    round_score_value = round_score_value + *hand_score.get(my_hand).unwrap();
 
                     total_score = total_score + round_score_value;
 
-                    matches.push(new_round);
-                    round_id = round_id + 1;
                     round_score_value = 0;
                 },
                 _ => {
