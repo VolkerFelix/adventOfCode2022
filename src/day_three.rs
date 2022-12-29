@@ -1,81 +1,40 @@
 use std::fs;
 use std::collections::HashMap;
+use std::path::PrefixComponent;
 
-#[derive(Default, Hash, Eq, PartialEq, Copy, Clone)]
-enum ERPS {
-    #[default]
-    Rock,
-    Paper,
-    Scissors
-}
+static ASCII: [char; 52] = [
+    'a', 'b', 'c', 'd', 'e', 
+    'f', 'g', 'h', 'i', 'j', 
+    'k', 'l', 'm', 'n', 'o',
+    'p', 'q', 'r', 's', 't', 
+    'u', 'v', 'w', 'x', 'y', 
+    'z', 'A', 'B', 'C', 'D',
+    'E', 'F', 'G', 'H', 'I', 
+    'J', 'K', 'L', 'M', 'N', 
+    'O', 'P', 'Q', 'R', 'S',
+    'T', 'U', 'V', 'W', 'X',
+    'Y', 'Z',
+];
 
-#[derive(Hash, Eq, PartialEq, Default, Clone, Copy)]
-enum EResults {
-    #[default]
-    Win,
-    Loss,
-    Draw
-}
-
-#[derive(Default, Copy, Clone)]
-struct Oponent {
-    m_hand: ERPS
-} 
-
-#[derive(Default, Copy, Clone)]
-struct Me {
-    m_hand: ERPS,
-}
-
-#[derive(Default, Copy, Clone)]
-struct DesiredOutcome {
-    m_des_outcome: EResults,
-}
-
-struct Round {
-    m_id: u32,
-    m_oponent: Oponent,
-    m_me: Me,
-    m_score: u32
+#[derive(Default)]
+struct Rucksack {
+    m_compartments: [Vec<char>; 2]
 }
 
 pub fn dayThree() {
 
-    let round_result: HashMap<(ERPS, EResults), ERPS> = HashMap::from([
-        ((ERPS::Rock, EResults::Draw), ERPS::Rock),
-        ((ERPS::Paper, EResults::Draw), ERPS::Paper),
-        ((ERPS::Scissors, EResults::Draw), ERPS::Scissors),
-        ((ERPS::Rock, EResults::Loss), ERPS::Scissors),
-        ((ERPS::Paper, EResults::Loss), ERPS::Rock),
-        ((ERPS::Scissors, EResults::Loss), ERPS::Paper),
-        ((ERPS::Rock, EResults::Win), ERPS::Paper),
-        ((ERPS::Paper, EResults::Win), ERPS::Scissors),
-        ((ERPS::Scissors, EResults::Win), ERPS::Rock),
-    ]);
+    let mut priorities: HashMap<char, usize> = HashMap::new();
 
-    let round_score: HashMap<EResults, u32> = HashMap::from([
-        (EResults::Draw, 3),
-        (EResults::Loss, 0),
-        (EResults::Win, 6)
-    ]);
+    for (i, element) in ASCII.iter().enumerate() {
+        priorities.insert(*element, i+1);
+    }
 
-    let hand_score: HashMap<ERPS, u32> = HashMap::from([
-        (ERPS::Rock, 1),
-        (ERPS::Paper, 2),
-        (ERPS::Scissors, 3)
-    ]);
+    let input = fs::read_to_string("rucksackInput.txt").unwrap();
 
-    let input = fs::read_to_string("rockPaperScissorsInput.txt").unwrap();
-
-    let mut matches: Vec<Round> = Vec::new();
-    let mut new_oponent = Oponent::default();
-    let mut new_me = Me::default();
-    let mut round_score_value:u32 = 0;
-    let mut round_id = 0;
-    let mut total_score = 0;
+    let mut input_items = Vec::new();
+    //let mut rucksacks = Vec::new();
     let mut found_white_spaces = 0;
-
-    let mut des_outcome = DesiredOutcome::default();
+    let mut prio_sum = 0;
 
     for element in input.chars() {
         // Warning: This is OS dependent
@@ -86,18 +45,30 @@ pub fn dayThree() {
                 1 => {
                     continue;
                 },
-                // New round
+                // New rucksack
                 2 => {
-                    // Check what's the supposed outcome
-                    round_score_value = *round_score.get(&des_outcome.m_des_outcome).unwrap();
-                    // My hand needed for the outcome
-                    let my_hand = round_result.get(&(new_oponent.m_hand, des_outcome.m_des_outcome)).unwrap();
-                    // Evaluate my hand
-                    round_score_value = round_score_value + *hand_score.get(my_hand).unwrap();
+                    // Devide found items in half and place into compartments
+                    let compartment1 = input_items[0..input_items.len()/2].as_ref();
+                    let compartment2 = input_items[input_items.len()/2..input_items.len()].as_ref();
+                    /*
+                    let new_rucksack = Rucksack {
+                        m_compartments: [compartment1.to_vec(), compartment2.to_vec()]
+                    };
+                    rucksacks.push(new_rucksack);
+                    let mut same_items = Vec::new();
+                    */
+                    // Search for same items and calc prio sum
+                    for item1 in compartment1 {
+                        for item2 in compartment2 {
+                            if item1 == item2 {
+                                prio_sum = prio_sum + priorities.get(item1).unwrap();
+                                break;
+                                //same_items.push(*item1);
 
-                    total_score = total_score + round_score_value;
-
-                    round_score_value = 0;
+                            }
+                        }
+                    }
+                    input_items.clear();
                 },
                 _ => {
                     panic!("Should not happen!")
@@ -107,32 +78,10 @@ pub fn dayThree() {
 
         else {
             found_white_spaces = 0;
-
-            match element {
-                'A' => {
-                    new_oponent.m_hand = ERPS::Rock;
-                },
-                'B' => {
-                    new_oponent.m_hand = ERPS::Paper;
-                },
-                'C' => {
-                    new_oponent.m_hand = ERPS::Scissors;
-                },
-                'X' => {
-                    des_outcome.m_des_outcome = EResults::Loss;
-                },
-                'Y' => {
-                    des_outcome.m_des_outcome = EResults::Draw;
-                },
-                'Z' => {
-                    des_outcome.m_des_outcome = EResults::Win;
-                },
-                _ => {
-                    panic!("Should not happen!");
-                }
-            }
+            input_items.push(element);
         }
     }
 
-    print!("Total score: {}", total_score);
+    print!("Total prio sum: {}", prio_sum);
+
 }
