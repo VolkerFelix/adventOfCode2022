@@ -1,6 +1,5 @@
 use std::fs;
 use std::collections::HashMap;
-use std::path::PrefixComponent;
 
 static ASCII: [char; 52] = [
     'a', 'b', 'c', 'd', 'e', 
@@ -16,12 +15,7 @@ static ASCII: [char; 52] = [
     'Y', 'Z',
 ];
 
-#[derive(Default)]
-struct Rucksack {
-    m_compartments: [Vec<char>; 2]
-}
-
-pub fn dayThree() {
+pub fn day_three() {
 
     let mut priorities: HashMap<char, usize> = HashMap::new();
 
@@ -32,7 +26,6 @@ pub fn dayThree() {
     let input = fs::read_to_string("rucksackInput.txt").unwrap();
 
     let mut input_items = Vec::new();
-    //let mut rucksacks = Vec::new();
     let mut found_white_spaces = 0;
     let mut prio_sum = 0;
 
@@ -48,23 +41,16 @@ pub fn dayThree() {
                 // New rucksack
                 2 => {
                     // Devide found items in half and place into compartments
-                    let compartment1 = input_items[0..input_items.len()/2].as_ref();
-                    let compartment2 = input_items[input_items.len()/2..input_items.len()].as_ref();
-                    /*
-                    let new_rucksack = Rucksack {
-                        m_compartments: [compartment1.to_vec(), compartment2.to_vec()]
-                    };
-                    rucksacks.push(new_rucksack);
-                    let mut same_items = Vec::new();
-                    */
+                    let mut compartment1 = input_items[0..input_items.len()/2].to_vec();
+                    let mut compartment2 = input_items[input_items.len()/2..input_items.len()].to_vec();
                     // Search for same items and calc prio sum
-                    for item1 in compartment1 {
-                        for item2 in compartment2 {
+                    'outer: for item1 in compartment1.iter_mut() {
+                        for item2 in compartment2.iter_mut() {
                             if item1 == item2 {
                                 prio_sum = prio_sum + priorities.get(item1).unwrap();
-                                break;
-                                //same_items.push(*item1);
-
+                                *item1 = '_';
+                                *item2 = '_';
+                                break 'outer;
                             }
                         }
                     }
